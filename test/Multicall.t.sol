@@ -13,6 +13,20 @@ contract MulticallTest is Test {
         mockMulticallableContract = new MockMulticallableContract();
     }
 
+    function testLegacyRequire() public {
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encodeWithSignature("legacyRequire()");
+        vm.expectRevert("legacy require");
+        mockMulticallableContract.multicall(data);
+    }
+
+    function testLegacyRevert() public {
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encodeWithSignature("legacyRevert()");
+        vm.expectRevert("legacy revert");
+        mockMulticallableContract.multicall(data);
+    }
+
     function testRevertWithCustomError() public {
         bytes[] memory data = new bytes[](1);
         data[0] = abi.encodeWithSignature("revertWithCustomError()");
@@ -24,28 +38,60 @@ contract MulticallTest is Test {
         vm.assume(keccak256(abi.encodePacked(reason)) != keccak256(abi.encodePacked("")));
         bytes[] memory data = new bytes[](1);
         data[0] = abi.encodeWithSignature("revertWithCustomErrorWithString(string)", reason);
-        vm.expectRevert(abi.encodePacked(reason));
+        vm.expectRevert(abi.encodeWithSelector(IMockMulticallableContract.CustomErrorWithString.selector, reason));
         mockMulticallableContract.multicall(data);
     }
 
     function testRevertWithCustomErrorWithBytes(bytes memory reason) public {
         bytes[] memory data = new bytes[](1);
         data[0] = abi.encodeWithSignature("revertWithCustomErrorWithBytes(bytes)", reason);
-        vm.expectRevert(reason);
+        vm.expectRevert(abi.encodeWithSelector(IMockMulticallableContract.CustomErrorWithBytes.selector, reason));
         mockMulticallableContract.multicall(data);
     }
 
     function testRevertWithCustomErrorWithUint(uint256 reason) public {
         bytes[] memory data = new bytes[](1);
         data[0] = abi.encodeWithSignature("revertWithCustomErrorWithUint(uint256)", reason);
-        vm.expectRevert(abi.encodePacked(reason));
+        vm.expectRevert(abi.encodeWithSelector(IMockMulticallableContract.CustomErrorWithUint.selector, reason));
         mockMulticallableContract.multicall(data);
     }
 
     function testRevertWithCustomErrorWithTwoPrimitives(uint256 reason1, bool reason2) public {
         bytes[] memory data = new bytes[](1);
         data[0] = abi.encodeWithSignature("revertWithCustomErrorWithTwoPrimitives(uint256,bool)", reason1, reason2);
-        vm.expectRevert(abi.encodePacked(reason1, reason2));
+        vm.expectRevert(
+            abi.encodeWithSelector(IMockMulticallableContract.CustomErrorWithTwoPrimitives.selector, reason1, reason2)
+        );
+        mockMulticallableContract.multicall(data);
+    }
+
+    function testReturnString(string memory reason) public {
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encodeWithSignature("returnString(string)", reason);
+        bytes[] memory results = mockMulticallableContract.multicall(data);
+        assertEq(results[0], abi.encode(reason));
+    }
+
+    function testReturnBytes(bytes memory reason) public {
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encodeWithSignature("returnBytes(bytes)", reason);
+        bytes[] memory results = mockMulticallableContract.multicall(data);
+        assertEq(results[0], abi.encode(reason));
+    }
+
+    function testReturnUint(uint256 reason) public {
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encodeWithSignature("returnUint(uint256)", reason);
+        bytes[] memory results = mockMulticallableContract.multicall(data);
+        assertEq(results[0], abi.encode(reason));
+    }
+
+    function testFirstRevertIsBubbledUp() public {
+        bytes[] memory data = new bytes[](3);
+        data[0] = abi.encodeWithSignature("returnUint(uint256)", 0);
+        data[1] = abi.encodeWithSignature("revertWithCustomError()");
+        data[2] = abi.encodeWithSignature("legacyRequire()");
+        vm.expectRevert(IMockMulticallableContract.CustomError.selector);
         mockMulticallableContract.multicall(data);
     }
 }

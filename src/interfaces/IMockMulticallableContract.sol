@@ -1,4 +1,3 @@
-
 interface IMockMulticallableContract {
     error CustomError();
     error CustomErrorWithString(string reason);

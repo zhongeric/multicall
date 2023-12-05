@@ -5,6 +5,14 @@ import {Multicall} from "../Multicall.sol";
 import {IMockMulticallableContract} from "../interfaces/IMockMulticallableContract.sol";
 
 contract MockMulticallableContract is IMockMulticallableContract, Multicall {
+    function legacyRequire() external pure {
+        require(false, "legacy require");
+    }
+
+    function legacyRevert() external pure {
+        revert("legacy revert");
+    }
+
     function revertWithCustomError() external pure {
         revert CustomError();
     }
@@ -35,5 +43,5 @@ contract MockMulticallableContract is IMockMulticallableContract, Multicall {
 
     function returnUint(uint256 reason) external pure returns (uint256) {
         return reason;
-    }   
+    }
 }
