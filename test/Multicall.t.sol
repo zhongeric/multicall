@@ -86,6 +86,17 @@ contract MulticallTest is Test {
         assertEq(results[0], abi.encode(reason));
     }
 
+    function testAllResultsAreReturned() public {
+        bytes[] memory data = new bytes[](3);
+        data[0] = abi.encodeWithSignature("returnUint(uint256)", 0);
+        data[1] = abi.encodeWithSignature("returnUint(uint256)", 1);
+        data[2] = abi.encodeWithSignature("returnUint(uint256)", 2);
+        bytes[] memory results = mockMulticallableContract.multicall(data);
+        assertEq(results[0], abi.encode(uint256(0)));
+        assertEq(results[1], abi.encode(uint256(1)));
+        assertEq(results[2], abi.encode(uint256(2)));
+    }
+
     function testFirstRevertIsBubbledUp() public {
         bytes[] memory data = new bytes[](3);
         data[0] = abi.encodeWithSignature("returnUint(uint256)", 0);
