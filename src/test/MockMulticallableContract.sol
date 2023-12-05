@@ -5,6 +5,10 @@ import {Multicall} from "../Multicall.sol";
 import {IMockMulticallableContract} from "../interfaces/IMockMulticallableContract.sol";
 
 contract MockMulticallableContract is IMockMulticallableContract, Multicall {
+    function emptyRevert() external pure {
+        revert();
+    }
+
     function legacyRequire() external pure {
         require(false, "legacy require");
     }

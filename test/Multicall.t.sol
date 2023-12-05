@@ -13,6 +13,13 @@ contract MulticallTest is Test {
         mockMulticallableContract = new MockMulticallableContract();
     }
 
+    function testEmptyRevert() public {
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encodeWithSignature("emptyRevert()");
+        vm.expectRevert();
+        mockMulticallableContract.multicall(data);
+    }
+
     function testLegacyRequire() public {
         bytes[] memory data = new bytes[](1);
         data[0] = abi.encodeWithSignature("legacyRequire()");
